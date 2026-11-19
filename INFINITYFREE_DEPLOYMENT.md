@@ -82,3 +82,4 @@ Save the file.
    http://<your-subdomain>.infinityfreeapp.com/login.php
    ```
 6. Sign in with your new admin credentials.
+

@@ -39,15 +39,57 @@ function page_header(string $title): void {
     global $pdo;
     $branches = $pdo->query('SELECT id,name FROM branches WHERE active=1 ORDER BY name')->fetchAll();
     $f = take_flash();
-    ?><!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    $script = basename($_SERVER['SCRIPT_NAME'] ?? '');
+    ?><!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title><?=e($title)?> · <?=e(APP_NAME)?></title><link rel="stylesheet" href="assets/style.css"></head><body>
-    <header class="topbar"><a class="brand" href="index.php">DDS <span>ERP</span></a>
-    <nav><a href="index.php">Dashboard</a><a href="products.php">Inventory</a><a href="sales.php">Sales / POS</a><a href="purchases.php">Purchases</a><a href="contacts.php">Contacts</a><a href="expenses.php">Expenses</a><a href="reports.php">Reports</a><?php if(is_admin()):?><a href="users.php">Users</a><?php endif?></nav>
-    <div class="top-actions"><?php if(is_admin() && count($branches)>1):?><form method="get"><select name="branch" onchange="this.form.submit()"><?php foreach($branches as $br):?><option value="<?=$br['id']?>" <?=$br['id']===current_branch_id()?'selected':''?>><?=e($br['name'])?></option><?php endforeach?></select></form><?php endif?><span><?=e($_SESSION['user']['username']??'')?></span><a href="logout.php">Logout</a></div></header>
-    <main class="container"><div class="page-heading"><div><div class="eyebrow">DELTA DRUG STORE</div><h1><?=e($title)?></h1></div></div>
-    <?php if($f):?><div class="alert <?=e($f[0])?>"><?=e($f[1])?></div><?php endif;
+    <div class="app">
+    <div class="topbar"><button onclick="document.body.classList.toggle('menu')" aria-label="Menu">☰</button><span>💊 <?=e(APP_NAME)?> · <?=e($title)?></span></div>
+    <div class="ov" onclick="document.body.classList.remove('menu')"></div>
+    <aside>
+      <a class="brand" href="index.php">💊 <span>DELTA</span> DRUG</a>
+      <nav id="nav">
+        <a class="<?=$script==='index.php'?'on':''?>" href="index.php"><span>📊</span>Dashboard</a>
+        <a class="<?=$script==='products.php'?'on':''?>" href="products.php"><span>📦</span>Inventory</a>
+        <a class="<?=$script==='sales.php'?'on':''?>" href="sales.php"><span>🛒</span>Sales / POS</a>
+        <a class="<?=$script==='purchases.php'?'on':''?>" href="purchases.php"><span>🔄</span>Purchases</a>
+        <a class="<?=$script==='contacts.php'?'on':''?>" href="contacts.php"><span>👥</span>Contacts</a>
+        <a class="<?=$script==='expenses.php'?'on':''?>" href="expenses.php"><span>💸</span>Expenses</a>
+        <a class="<?=$script==='reports.php'?'on':''?>" href="reports.php"><span>📄</span>Reports</a>
+        <?php if(is_admin()):?><a class="<?=$script==='users.php'?'on':''?>" href="users.php"><span>👤</span>Users</a><?php endif?>
+        <a class="so" href="logout.php"><span>🚪</span>Sign out</a>
+      </nav>
+      <div class="who">
+        <b><?=e($_SESSION['user']['username']??'User')?></b><br>
+        <span class="user-badge"><?=e($_SESSION['user']['role']??'Staff')?></span>
+        <?php if(is_admin() && count($branches)>1):?>
+        <form method="get" style="margin-top:8px;padding:0;background:none;border:0;display:block;box-shadow:none">
+          <select name="branch" onchange="this.form.submit()" style="padding:5px 8px;font-size:12px;background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(255,255,255,0.2)">
+            <?php foreach($branches as $br):?>
+              <option value="<?=$br['id']?>" <?=$br['id']===current_branch_id()?'selected':''?> style="color:#000"><?=e($br['name'])?></option>
+            <?php endforeach?>
+          </select>
+        </form>
+        <?php endif?>
+        <a href="logout.php" style="margin-top:8px">Sign out</a>
+      </div>
+    </aside>
+    <main>
+      <div class="hd">
+        <div>
+          <h2><?=e($title)?></h2>
+          <div class="note" style="margin:2px 0 0">DELTA DRUG STORE · Independent ERP</div>
+        </div>
+        <span class="live">● Online</span>
+      </div>
+      <?php if($f):?><div class="alert <?=e($f[0])?>"><?=e($f[1])?></div><?php endif;
 }
-function page_footer(): void { ?></main><footer>DELTA DRUG STORE ERP · Independent PHP + MySQL Edition</footer></body></html><?php }
+function page_footer(): void { ?>
+    </main>
+    </div>
+    <script>
+    document.querySelectorAll('nav a').forEach(a=>a.addEventListener('click',()=>document.body.classList.remove('menu')));
+    </script>
+    </body></html><?php }
 function selected_branch_id(PDO $pdo): int {
     $id = current_branch_id();
     $s=$pdo->prepare('SELECT id FROM branches WHERE id=? AND active=1'); $s->execute([$id]);

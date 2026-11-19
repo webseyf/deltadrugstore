@@ -14,11 +14,78 @@ if($_SERVER['REQUEST_METHOD']==='POST' && ($_POST['action']??'')==='receive'){
 $s=$pdo->prepare('SELECT id,name,sku,qty,unit FROM products WHERE branch_id=? AND active=1 ORDER BY name');$s->execute([$branchId]);$products=$s->fetchAll();$suppliers=$pdo->query('SELECT id,name FROM suppliers ORDER BY name')->fetchAll();
 page_header('Purchases');
 ?>
-<section class="panel"><h2>Receive stock / record purchase</h2><form method="post"><input type="hidden" name="csrf" value="<?=csrf_token()?>"><input type="hidden" name="action" value="receive"><div class="form-grid">
-<div><label>Supplier</label><select name="supplier_id"><option value="">Walk-in / unknown</option><?php foreach($suppliers as $x):?><option value="<?=$x['id']?>"><?=e($x['name'])?></option><?php endforeach?></select></div>
-<div><label>Invoice number</label><input name="invoice_no" placeholder="Supplier invoice"></div>
-<div><label>Product</label><select name="product_id" required><?php foreach($products as $p):?><option value="<?=$p['id']?>"><?=e($p['name'].' ('.$p['sku'].')')?></option><?php endforeach?></select></div>
-<div><label>Quantity received</label><input type="number" step=".001" min=".001" name="qty" required></div>
-<div><label>Unit cost</label><input type="number" step=".01" min="0" name="unit_cost" required></div><div><button>Save purchase & update stock</button></div></div></form></section>
-<section class="panel"><h2>Recent purchases</h2><?php $s=$pdo->prepare('SELECT p.*,sp.name supplier FROM purchases p LEFT JOIN suppliers sp ON sp.id=p.supplier_id WHERE p.branch_id=? ORDER BY p.id DESC LIMIT 30');$s->execute([$branchId]);?><div class="table-wrap"><table><tr><th>Invoice</th><th>Supplier</th><th>Date</th><th>Total</th></tr><?php foreach($s as $r):?><tr><td><?=e($r['invoice_no'])?></td><td><?=e($r['supplier']??'—')?></td><td><?=e($r['created_at'])?></td><td><?=money($r['total'])?></td></tr><?php endforeach?></table></div></section>
+<section class="panel">
+  <h3>Receive stock / record purchase</h3>
+  <form method="post" style="box-shadow:none;padding:0;background:none;border:0;margin:0">
+    <input type="hidden" name="csrf" value="<?=csrf_token()?>">
+    <input type="hidden" name="action" value="receive">
+    <div class="form-grid">
+      <div>
+        <label>Supplier</label>
+        <select name="supplier_id">
+          <option value="">Walk-in / General supplier</option>
+          <?php foreach($suppliers as $x):?>
+            <option value="<?=$x['id']?>"><?=e($x['name'])?></option>
+          <?php endforeach?>
+        </select>
+      </div>
+      <div>
+        <label>Invoice number</label>
+        <input name="invoice_no" placeholder="Supplier invoice ref">
+      </div>
+      <div>
+        <label>Product</label>
+        <select name="product_id" required>
+          <?php foreach($products as $p):?>
+            <option value="<?=$p['id']?>"><?=e($p['name'].' ('.$p['sku'].')')?></option>
+          <?php endforeach?>
+        </select>
+      </div>
+      <div>
+        <label>Quantity received</label>
+        <input type="number" step=".001" min=".001" name="qty" required>
+      </div>
+      <div>
+        <label>Unit cost (<?=e(CURRENCY)?>)</label>
+        <input type="number" step=".01" min="0" name="unit_cost" required>
+      </div>
+      <div>
+        <button class="pri" style="width:100%">Save & update stock</button>
+      </div>
+    </div>
+  </form>
+</section>
+
+<section class="panel">
+  <h3>Recent purchases</h3>
+  <?php 
+  $s=$pdo->prepare('SELECT p.*,sp.name supplier FROM purchases p LEFT JOIN suppliers sp ON sp.id=p.supplier_id WHERE p.branch_id=? ORDER BY p.id DESC LIMIT 30');
+  $s->execute([$branchId]);
+  ?>
+  <div class="wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Invoice</th>
+          <th>Supplier</th>
+          <th>Date</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <?php foreach($s as $r):?>
+        <tr>
+          <td><?=e($r['invoice_no'])?></td>
+          <td><?=e($r['supplier']??'—')?></td>
+          <td><?=e($r['created_at'])?></td>
+          <td><b><?=money($r['total'])?></b></td>
+        </tr>
+        <?php endforeach?>
+        <?php if(!$s->rowCount()):?>
+        <tr><td colspan="4" class="empty">No purchases recorded yet.</td></tr>
+        <?php endif?>
+      </tbody>
+    </table>
+  </div>
+</section>
 <?php page_footer(); ?>
