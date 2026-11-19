@@ -2,7 +2,7 @@
 -- Create the database in cPanel first, then import this file into that database.
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS=0;
-DROP TABLE IF EXISTS sessions, audit_logs, stock_movements, sale_items, sales, purchase_items, purchases, expenses, products, categories, suppliers, customers, users, branches;
+DROP TABLE IF EXISTS audit_logs, stock_movements, sale_items, sales, purchase_items, purchases, expenses, products, categories, suppliers, customers, users, branches;
 SET FOREIGN_KEY_CHECKS=1;
 
 CREATE TABLE branches (
@@ -87,9 +87,5 @@ CREATE TABLE audit_logs (
  details TEXT, ip_address VARCHAR(64), created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
  FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE SET NULL,
  FOREIGN KEY(branch_id) REFERENCES branches(id) ON DELETE SET NULL
-) ENGINE=InnoDB;
-CREATE TABLE sessions (
- id VARCHAR(128) NOT NULL PRIMARY KEY, data MEDIUMTEXT NOT NULL,
- last_activity INT UNSIGNED NOT NULL, INDEX idx_sessions_activity(last_activity)
 ) ENGINE=InnoDB;
 INSERT INTO branches(name,city) VALUES('Main Branch','Jigjiga');
